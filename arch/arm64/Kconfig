@@ -240,6 +240,7 @@ source "kernel/Kconfig.freezer"
 
 menu "Platform selection"
 
+
 config ARCH_THUNDER
 	bool "Cavium Inc. Thunder SoC Family"
 	help

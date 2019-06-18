@@ -30,6 +30,7 @@
 #include "msm-audio-pinctrl.h"
 #include "../codecs/msm8x16-wcd.h"
 #include "../codecs/wsa881x-analog.h"
+#include "lct_mic_drv.h"
 #include <linux/regulator/consumer.h>
 #define DRV_NAME "msm8952-asoc-wcd"
 #ifdef CONFIG_MACH_LENOVO_KUNTAO
@@ -122,7 +123,7 @@ static struct wcd_mbhc_config mbhc_cfg = {
 	.key_code[1] = KEY_VOLUMEUP,
 	.key_code[2] = KEY_VOLUMEDOWN,
 	.key_code[3] = KEY_VOICECOMMAND,
-#elif defined(CONFIG_MACH_LENOVO_TB8703) || defined(CONFIG_MACH_LENOVO_TBX704)
+#elif defined(CONFIG_MACH_LENOVO_TB8703) || defined(CONFIG_MACH_LENOVO_TBX704) || defined(CONFIG_MACH_LENOVO_TB8504) || defined(CONFIG_MACH_LENOVO_TB8704) || defined(CONFIG_MACH_LENOVO_TB8804)
 	.key_code[1] = KEY_VOLUMEUP,
         .key_code[2] = KEY_VOLUMEDOWN,
         .key_code[3] = 0,
@@ -158,6 +159,22 @@ static struct afe_clk_cfg mi2s_tx_clk_v1 = {
 	0,
 };
 
+#if 0
+struct cdc_pdm_pinctrl_info {
+	struct pinctrl *pinctrl;
+	struct pinctrl_state *cdc_lines_sus;
+	struct pinctrl_state *cdc_lines_act;
+	struct pinctrl_state *cross_conn_det_sus;
+	struct pinctrl_state *cross_conn_det_act;
+	struct pinctrl_state *spk_ext_pa_act;
+	struct pinctrl_state *spk_ext_pa_sus;
+    struct pinctrl_state *spk_rec_switch_act;
+	struct pinctrl_state *spk_rec_switch_sus;
+    struct pinctrl_state *spk_hs_switch_act;
+	struct pinctrl_state *spk_hs_switch_sus;
+};
+static struct cdc_pdm_pinctrl_info pinctrl_info;
+#endif
 static struct afe_clk_cfg wsa_ana_clk_v1 = {
 	AFE_API_VERSION_I2S_CONFIG,
 	0,
@@ -404,43 +421,85 @@ void spk_ext_pa_set_mode(struct msm8916_asoc_mach_data *pdata,int mode)
 
 }
 #endif
+
 #if defined(CONFIG_SPEAKER_EXT_PA)
 int msm8x16_spk_ext_pa_ctrl(struct msm8916_asoc_mach_data *pdatadata, bool value)
 {
-	struct msm8916_asoc_mach_data *pdata = pdatadata; //snd_soc_card_get_drvdata(data);
+	struct msm8916_asoc_mach_data *pdata = pdatadata;
 	bool on_off = value;
-    //bool is_hphl_enable = (snd_soc_read(codec, MSM8X16_WCD_A_ANALOG_RX_HPH_L_TEST) & 0x04);
-    //bool is_hphr_enable = (snd_soc_read(codec, MSM8X16_WCD_A_ANALOG_RX_HPH_R_TEST) & 0x04);
 	int ret = 0;
 
-	pr_debug("%s, spk_ext_pa_l_gpio=%d, spk_ext_pa_r_gpio=%d,  on_off=%d\n",
-                    __func__, pdata->spk_ext_pa_l_gpio, pdata->spk_ext_pa_r_gpio, on_off);
+	pr_debug("%s, spk_ext_pa_l_gpio=%d, spk_ext_pa_r_gpio=%d,  on_off=%d\n", 
+		__func__, pdata->spk_ext_pa_l_gpio, pdata->spk_ext_pa_r_gpio, on_off);
 	if (gpio_is_valid(pdata->spk_ext_pa_l_gpio) && gpio_is_valid(pdata->spk_ext_pa_r_gpio)) {
 		if (on_off) {
-            //gpio_direction_output(pdata->spk_ext_pa_gpio_lc, 1);
-#if  defined(CONFIG_SPEAKER_EXT_PA_AW8738)// Use mode 2 for project P3585
-			pr_debug("At %d In (%s),set pa\n",__LINE__, __FUNCTION__);
+#if defined (CONFIG_MACH_LENOVO_TB8804) || defined(CONFIG_MACH_LENOVO_TB8704)
+			//Use mode 5 for 3590
 			gpio_set_value_cansleep(pdata->spk_ext_pa_l_gpio, false);
-            gpio_set_value_cansleep(pdata->spk_ext_pa_r_gpio, false);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_r_gpio, false);
 			mdelay(1);
 			gpio_set_value_cansleep(pdata->spk_ext_pa_l_gpio, true);
-            gpio_set_value_cansleep(pdata->spk_ext_pa_r_gpio, true);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_r_gpio, true);
 			udelay(2);
 			gpio_set_value_cansleep(pdata->spk_ext_pa_l_gpio, false);
-            gpio_set_value_cansleep(pdata->spk_ext_pa_r_gpio, false);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_r_gpio, false);
 			udelay(2);
-
+			gpio_set_value_cansleep(pdata->spk_ext_pa_l_gpio, true);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_r_gpio, true);
+			udelay(2);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_l_gpio, false);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_r_gpio, false);
+			udelay(2);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_l_gpio, true);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_r_gpio, true);
+			udelay(2);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_l_gpio, false);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_r_gpio, false);
+			udelay(2);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_l_gpio, true);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_r_gpio, true);
+			udelay(2);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_l_gpio, false);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_r_gpio, false);
+			udelay(2);
+#elif defined(CONFIG_MACH_LENOVO_TB8504)
+			//Use AW87317 mode 3 for 3588
+			gpio_set_value_cansleep(pdata->spk_ext_pa_l_gpio, false);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_r_gpio, false);
+			mdelay(1);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_l_gpio, true);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_r_gpio, true);
+			udelay(2);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_l_gpio, false);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_r_gpio, false);
+			udelay(2);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_l_gpio, true);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_r_gpio, true);
+			udelay(2);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_l_gpio, false);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_r_gpio, false);
+			udelay(2);
+#else
+#if defined(CONFIG_SPEAKER_EXT_PA_AW8738) //Use mode 2 for project P3585
+			pr_debug("At %d In (%s),set pa\n",__LINE__, __FUNCTION__);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_l_gpio, false);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_r_gpio, false);
+			mdelay(1);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_l_gpio, true);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_r_gpio, true);
+			udelay(2);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_l_gpio, false);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_r_gpio, false);
+			udelay(2);
 #endif
-            //if (is_hphl_enable)
-            gpio_set_value_cansleep(pdata->spk_ext_pa_l_gpio, true);
-            //if (is_hphr_enable)
-            gpio_set_value_cansleep(pdata->spk_ext_pa_r_gpio, true);
+#endif
+			gpio_set_value_cansleep(pdata->spk_ext_pa_l_gpio, true);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_r_gpio, true);
 			msleep(50);
-
 		}
 		else {
 			gpio_set_value_cansleep(pdata->spk_ext_pa_l_gpio, false);
-            gpio_set_value_cansleep(pdata->spk_ext_pa_r_gpio, false);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_r_gpio, false);
 		}
 	}
 	else
@@ -1951,7 +2010,7 @@ static void *def_msm8952_wcd_mbhc_cal(void)
 #define S(X, Y) ((WCD_MBHC_CAL_PLUG_TYPE_PTR(msm8952_wcd_cal)->X) = (Y))
 #ifdef CONFIG_MACH_LENOVO_KUNTAO
 	S(v_hs_max, 1700);
-#elif defined(CONFIG_MACH_LENOVO_TB8703) || defined(CONFIG_MACH_LENOVO_TBX704)
+#elif defined(CONFIG_MACH_LENOVO_TB8703) || defined(CONFIG_MACH_LENOVO_TBX704) || defined(CONFIG_MACH_LENOVO_TB8504) || defined(CONFIG_MACH_LENOVO_TB8704) || defined(CONFIG_MACH_LENOVO_TB8804)
 	S(v_hs_max, 1600);
 #else
 	S(v_hs_max, 1500);
@@ -1989,7 +2048,7 @@ static void *def_msm8952_wcd_mbhc_cal(void)
 	btn_high[3] = 450;
 	btn_low[4] = 450;
 	btn_high[4] = 450;
-#elif defined CONFIG_MACH_LENOVO_TB8703
+#elif defined(CONFIG_MACH_LENOVO_TB8703) || defined(CONFIG_MACH_LENOVO_TB8504) || defined(CONFIG_MACH_LENOVO_TB8704)
 	btn_low[0] = 75;
 	btn_high[0] = 75;
 	btn_low[1] = 200;
@@ -2011,6 +2070,17 @@ static void *def_msm8952_wcd_mbhc_cal(void)
 	btn_high[3] = 512.5;
 	btn_low[4] = 512.5;
 	btn_high[4] = 512.5;
+#elif defined(CONFIG_MACH_LENOVO_TB8804)
+	btn_low[0] = 75;
+	btn_high[0] = 75;
+	btn_low[1] = 200;
+	btn_high[1] = 200;
+	btn_low[2] = 350;
+	btn_high[2] = 350;
+	btn_low[3] = 500;
+	btn_high[3] = 500;
+	btn_low[4] = 500;
+	btn_high[4] = 500;
 #else
 	btn_low[0] = 75;
 	btn_high[0] = 75;
@@ -3250,13 +3320,33 @@ static void msm8x16_rec_ext_pa_delayed(struct work_struct *work)
 	}
 }
 #endif
+
+#if defined(CONFIG_MACH_LENOVO_TB8504) //mike_zhu add  20170111 for spk pop	
+static void msm8x16_spk_ext_pa_delayed(struct work_struct *work)
+{
+	struct delayed_work *dwork;
+	struct msm8916_asoc_mach_data *pdata;
+
+	dwork = to_delayed_work(work);
+	pdata = container_of(dwork, struct msm8916_asoc_mach_data, speaker_pa_enable_work);
+	pr_debug("At %d In (%s),enter,pdata->spk_is_on=%d\n",__LINE__, __FUNCTION__,pdata->spk_is_on);
+if(pdata->spk_is_on == 0)
+{
+	mutex_lock(&pdata->speaker_pa_mutex);
+	msm8x16_spk_ext_pa_ctrl(pdata, 1);
+	mutex_unlock(&pdata->speaker_pa_mutex);
+	pdata->spk_is_on = 2;
+}
+}
+#endif
+
 static bool msm8952_swap_gnd_mic(struct snd_soc_codec *codec)
 {
 	struct snd_soc_card *card = codec->component.card;
 	struct msm8916_asoc_mach_data *pdata = snd_soc_card_get_drvdata(card);
 	int value, ret;
 
-	pr_debug("%s: configure gpios for US_EU\n", __func__);
+	pr_err("%s: configure gpios for US_EU\n", __func__);
 
 	if (!gpio_is_valid(pdata->us_euro_gpio)) {
 		pr_err("%s: Invalid gpio: %d", __func__, pdata->us_euro_gpio);
@@ -3270,10 +3360,15 @@ static bool msm8952_swap_gnd_mic(struct snd_soc_codec *codec)
 		return false;
 	}
 	gpio_set_value_cansleep(pdata->us_euro_gpio, !value);
+
 #ifdef CONFIG_MACH_LENOVO_TBX704
 	us_en_save_flag=!value;
 #endif
 	pr_debug("%s: swap select switch %d to %d\n", __func__, value, !value);
+#if defined(CONFIG_MACH_LENOVO_TB8704) ||  defined(CONFIG_MACH_LENOVO_TB8804) ||  defined(CONFIG_MACH_LENOVO_TB8504)
+	lct_mic_set(!value);
+#endif
+	pr_err("us_euro_gpio %s: swap select switch %d to %d\n", __func__, value, !value);
 
 	ret = msm_gpioset_suspend(CLIENT_WCD_INT, "us_eu_gpio");
 	if (ret < 0) {
@@ -3300,11 +3395,41 @@ static void msm8952_dt_parse_cap_info(struct platform_device *pdev,
 		 MICBIAS_EXT_BYP_CAP : MICBIAS_NO_EXT_BYP_CAP);
 }
 
-#if defined(CONFIG_SPEAKER_EXT_PA)		// xuke @ 20141112	Support external PA for speaker.
+
+#if defined(CONFIG_SPEAKER_EXT_PA) //xuke @ 20141112 Support external PA for speaker.
 static int msm8x16_setup_spk_ext_pa(struct platform_device *pdev, struct msm8916_asoc_mach_data *pdata)
 {
-	//struct pinctrl *pinctrl;
-	//int ret;
+#if defined(CONFIG_MACH_LENOVO_TB8504)
+	int ret;
+	struct pinctrl *pinctrl;
+	struct pinctrl_state *spkl_ext_pa_sus;
+	struct pinctrl_state *spkr_ext_pa_sus;
+
+	pinctrl = devm_pinctrl_get(&pdev->dev);
+	if (IS_ERR(pinctrl)) {
+		pr_err("%s: Unable to get pinctrl handle\n", __func__);
+	}
+
+	//for left speaker
+	spkl_ext_pa_sus = pinctrl_lookup_state(pinctrl, "spkl_ext_pa_sus");
+	if (IS_ERR(spkl_ext_pa_sus)) {
+		pr_err("%s: Unable to get  spkl_ext_pa_sus disable handle\n", __func__);
+	}
+	ret=pinctrl_select_state( pinctrl, spkl_ext_pa_sus);
+	if (ret < 0) {
+		pr_err("%s: Unable to  spkl_ext_pa_sus  handle\n", __func__);
+	}
+
+	//for right speaker
+	spkr_ext_pa_sus = pinctrl_lookup_state(pinctrl, "spkr_ext_pa_sus");
+	if (IS_ERR(spkr_ext_pa_sus)) {
+		pr_err("%s: Unable to get spkr_ext_pa_sus disable handle\n", __func__);
+	}
+	ret=pinctrl_select_state( pinctrl, spkr_ext_pa_sus);
+	if (ret < 0) {
+		pr_err("%s: Unable to  spkr_ext_pa_sus  handle\n", __func__);
+	}
+#endif
 
 	pdata->spk_ext_pa_l_gpio = of_get_named_gpio(pdev->dev.of_node,
 					"qcom,spk_ext_pa_l", 0);
@@ -3355,7 +3480,7 @@ static int msm8x16_setup_hs_ext_pa(struct platform_device *pdev, struct msm8916_
 {
 	//struct pinctrl *pinctrl;
 	int ret;
-
+    
     pdata->spk_hs_switch_gpio = of_get_named_gpio_flags(pdev->dev.of_node, "qcom,spk_hs_switch",
 				0, NULL);
 	if (pdata->spk_hs_switch_gpio < 0) {
@@ -3363,6 +3488,8 @@ static int msm8x16_setup_hs_ext_pa(struct platform_device *pdev, struct msm8916_
 	} else {
 		pr_debug("%s, spk_hs_switch_gpio=%d\n", __func__, pdata->spk_hs_switch_gpio);
         if (gpio_is_valid(pdata->spk_hs_switch_gpio))
+		if (gpio_is_valid(pdata->spk_hs_switch_gpio))
+
 		{
 			pr_debug("%s, spk_hs_switch_gpio request\n", __func__);
 			ret = gpio_request(pdata->spk_hs_switch_gpio, "ext/spk_hs_switch-GPIO");
@@ -3370,7 +3497,7 @@ static int msm8x16_setup_hs_ext_pa(struct platform_device *pdev, struct msm8916_
 				pr_debug("Failed to request /ext/spk_hs_switch-GPIO: %d\n", ret);
 				return -EINVAL;
 			}
-            gpio_direction_output(pdata->spk_hs_switch_gpio, 0);
+			gpio_direction_output(pdata->spk_hs_switch_gpio, 0);
 			pr_debug("At %d In (%s),set spk_hs_switch_gpio to low\n",__LINE__, __FUNCTION__);//check run to here ?
 			gpio_set_value_cansleep(pdata->spk_hs_switch_gpio, 0);
 			msleep(5);
@@ -3380,9 +3507,14 @@ static int msm8x16_setup_hs_ext_pa(struct platform_device *pdev, struct msm8916_
 }
 
 #endif
+
 #if defined(CONFIG_RECEIVER_EXT_PA)
 static int msm8x16_setup_rec_ext_pa(struct platform_device *pdev, struct msm8916_asoc_mach_data *pdata)
 {
+#if defined(CONFIG_MACH_LENOVO_TB8804) || defined(CONFIG_MACH_LENOVO_TB8704) || defined(CONFIG_MACH_LENOVO_TB8504)
+	//no receiver switch gpio for P3590, just return for init.
+	return 0;
+#else
     //struct pinctrl *pinctrl;
 	int ret;
 
@@ -3396,19 +3528,38 @@ static int msm8x16_setup_rec_ext_pa(struct platform_device *pdev, struct msm8916
 		if (gpio_is_valid(pdata->spk_rec_switch_gpio_lc))
 		{
 			pr_debug("%s, spk_rec_switch_gpio_lc request\n", __func__);
+#if 0
+			pinctrl = devm_pinctrl_get(&pdev->dev);
+			if (IS_ERR(pinctrl)) {
+				pr_err("%s: Unable to get pinctrl handle\n", __func__);
+				return -EINVAL;
+			}
+			pinctrl_info.pinctrl = pinctrl;
+			/* get pinctrl handle for spk_rec_switch_gpio_lc */
+			pinctrl_info.spk_rec_switch_act = pinctrl_lookup_state(pinctrl, "spk_rec_switch_act");
+			if (IS_ERR(pinctrl_info.spk_rec_switch_act)) {
+				pr_err("%s: Unable to get rec pinctrl disable handle\n", __func__);
+				return -EINVAL;
+			}
+			pinctrl_info.spk_rec_switch_sus = pinctrl_lookup_state(pinctrl, "spk_rec_switch_sus");
+			if (IS_ERR(pinctrl_info.spk_rec_switch_sus)) {
+				pr_err("%s: Unable to get rec pinctrl active handle\n", __func__);
+				return -EINVAL;
+			}
+#endif
 			ret = gpio_request(pdata->spk_rec_switch_gpio_lc, "ext/spk_rec_switch-GPIO");
 			if (ret != 0) {
 				pr_debug("Failed to request /spk/rec switch-GPIO: %d\n", ret);
 				return -EINVAL;
 			}
-            gpio_direction_output(pdata->spk_rec_switch_gpio_lc, 1);
+			gpio_direction_output(pdata->spk_rec_switch_gpio_lc, 1);
 			pr_debug("At %d In (%s),set spk_rec_switch_gpio_lc to high\n",__LINE__, __FUNCTION__);//check run to here ?
 			gpio_set_value_cansleep(pdata->spk_rec_switch_gpio_lc, 1);
 			msleep(5);
 		}
-
 	}
 	return 0;
+#endif
 }
 #endif
 
@@ -3893,6 +4044,10 @@ parse_mclk_freq:
 #if defined(CONFIG_RECEIVER_EXT_PA)
 	INIT_DELAYED_WORK(&pdata->rec_gpio_work, msm8x16_rec_ext_pa_delayed);
 #endif
+#if defined(CONFIG_MACH_LENOVO_TB8504) //mike_zhu add  20170111 for spk pop	
+	INIT_DELAYED_WORK(&pdata->speaker_pa_enable_work, msm8x16_spk_ext_pa_delayed);
+	mutex_init(&pdata->speaker_pa_mutex);
+#endif
 	mutex_init(&pdata->cdc_mclk_mutex);
 	atomic_set(&pdata->mclk_rsc_ref, 0);
 	if (card->aux_dev) {
@@ -3939,20 +4094,40 @@ err:
 		}
 	}
 
-    #if defined(CONFIG_SPEAKER_EXT_PA)
+#if defined(CONFIG_SPEAKER_EXT_PA)
     if (gpio_is_valid(pdata->spk_ext_pa_l_gpio))
        gpio_free(pdata->spk_ext_pa_l_gpio);
     if (gpio_is_valid(pdata->spk_ext_pa_r_gpio))
        gpio_free(pdata->spk_ext_pa_r_gpio);
-    #endif
-    #if defined(CONFIG_SPEAKER_HEADPHONE_SWITCH)
+#endif
+#if defined(CONFIG_SPEAKER_HEADPHONE_SWITCH)
 	if (gpio_is_valid(pdata->spk_hs_switch_gpio))
 		gpio_free(pdata->spk_hs_switch_gpio);
-    #endif
-    #if defined(CONFIG_RECEIVER_EXT_PA)
+#endif
+#if defined(CONFIG_RECEIVER_EXT_PA)
+#if !(defined(CONFIG_MACH_LENOVO_TB8504) || defined(CONFIG_MACH_LENOVO_TB8704) || defined(CONFIG_MACH_LENOVO_TB8504))
 	if (gpio_is_valid(pdata->spk_rec_switch_gpio_lc))
 		gpio_free(pdata->spk_rec_switch_gpio_lc);
-    #endif
+#endif
+#endif
+
+#if defined(CONFIG_SPEAKER_EXT_PA)
+	if (gpio_is_valid(pdata->spk_ext_pa_l_gpio))
+		gpio_free(pdata->spk_ext_pa_l_gpio);
+	if (gpio_is_valid(pdata->spk_ext_pa_r_gpio))
+		gpio_free(pdata->spk_ext_pa_r_gpio);
+#endif
+#if defined(CONFIG_SPEAKER_HEADPHONE_SWITCH)
+	if (gpio_is_valid(pdata->spk_hs_switch_gpio))
+		gpio_free(pdata->spk_hs_switch_gpio);
+#endif
+#if defined(CONFIG_RECEIVER_EXT_PA)
+#if !(defined(CONFIG_MACH_LENOVO_TB8504) || defined(CONFIG_MACH_LENOVO_TB8704) || defined(CONFIG_MACH_LENOVO_TB8504))
+	if (gpio_is_valid(pdata->spk_rec_switch_gpio_lc))
+		gpio_free(pdata->spk_rec_switch_gpio_lc);
+#endif
+#endif
+
 err1:
 	devm_kfree(&pdev->dev, pdata);
 	return ret;
