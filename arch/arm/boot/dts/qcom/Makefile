@@ -210,8 +210,12 @@ dtb-$(CONFIG_ARCH_MSM8940) += msm8940-pmi8937-cdp.dtb \
 	msm8940-pmi8940-rcm.dtb \
 	msm8940-pmi8940-qrd-sku7.dtb
 
+ifeq ($(CONFIG_KERNEL_CUSTOM_P3592),y)
+dtb-$(CONFIG_ARCH_MSM8953) += tb8704v-msm8953-mtp.dtb
+else
 dtb-$(CONFIG_ARCH_MSM8953) += tb8704-msm8953-mtp.dtb \
         tb8704-apq8053-mtp.dtb
+endif
 
 dtb-$(CONFIG_ARCH_SDM450) += sdm450-rcm.dtb \
 	sdm450-cdp.dtb \
